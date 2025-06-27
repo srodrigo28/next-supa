@@ -1,101 +1,254 @@
-import Image from "next/image";
 
-export default function Home() {
+'use client'
+import React, { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabaseClient';
+
+interface Produto {
+  id?: number;
+  nome: string;
+  qtd: number;
+  preco: number;
+  foto?: string;
+}
+
+const Home: React.FC = () => {
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [novoProduto, setNovoProduto] = useState<Produto>({
+    nome: '',
+    qtd: 0,
+    preco: 0,
+    foto: '',
+  });
+  const [detalhesProduto, setDetalhesProduto] = useState<Produto | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const fetchProdutos = async () => {
+    const { data, error } = await supabase.from('produto').select('*');
+    if (error) {
+      console.error('Erro ao buscar produtos:', error);
+    } else {
+      setProdutos(data || []);
+    }
+  };
+
+  const handleAddProduto = async () => {
+    const { data, error } = await supabase.from('produto').insert([novoProduto]);
+    if (error) {
+      console.error('Erro ao adicionar produto:', error);
+    } else if (data) {
+      setProdutos((prev) => [...prev, ...data]);
+      setNovoProduto({ nome: '', qtd: 0, preco: 0, foto: '' });
+    }
+  };
+
+  const handleUpdateProduto = async () => {
+    if (!detalhesProduto || !detalhesProduto.id) return;
+
+    const { data, error } = await supabase
+      .from('produto')
+      .update({
+        nome: detalhesProduto.nome,
+        qtd: detalhesProduto.qtd,
+        preco: detalhesProduto.preco,
+        foto: detalhesProduto.foto,
+      })
+      .eq('id', detalhesProduto.id);
+
+    if (error) {
+      console.error('Erro ao atualizar produto:', error);
+    } else if (data) {
+      setProdutos((prev) =>
+        prev.map((prod) => (prod.id === detalhesProduto.id ? data[0] : prod))
+      );
+      setIsEditing(false);
+      setIsModalOpen(false);
+    }
+  };
+
+  const handleDeleteProduto = async () => {
+    if (!detalhesProduto || !detalhesProduto.id) return;
+
+    const { error } = await supabase.from('produto').delete().eq('id', detalhesProduto.id);
+
+    if (error) {
+      console.error('Erro ao excluir produto:', error);
+    } else {
+      setProdutos((prev) => prev.filter((prod) => prod.id !== detalhesProduto.id));
+      setIsModalOpen(false);
+    }
+  };
+
+  const handleShowDetalhes = (produto: Produto) => {
+    setDetalhesProduto(produto);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setDetalhesProduto(null);
+    setIsEditing(false);
+  };
+
+  useEffect(() => {
+    fetchProdutos();
+  }, []);
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Gerenciamento de Produtos</h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold">Cadastrar Produto</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <input
+            type="text"
+            placeholder="Nome do Produto"
+            value={novoProduto.nome}
+            onChange={(e) => setNovoProduto({ ...novoProduto, nome: e.target.value })}
+            className="p-2 border rounded"
+          />
+          <input
+            type="number"
+            placeholder="Quantidade"
+            value={novoProduto.qtd}
+            onChange={(e) => setNovoProduto({ ...novoProduto, qtd: +e.target.value })}
+            className="p-2 border rounded"
+          />
+          <input
+            type="number"
+            placeholder="Preço"
+            value={novoProduto.preco}
+            onChange={(e) => setNovoProduto({ ...novoProduto, preco: +e.target.value })}
+            className="p-2 border rounded"
+          />
+          <input
+            type="text"
+            placeholder="URL da Foto"
+            value={novoProduto.foto}
+            onChange={(e) => setNovoProduto({ ...novoProduto, foto: e.target.value })}
+            className="p-2 border rounded"
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          onClick={handleAddProduto}
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          Adicionar Produto
+        </button>
+      </div>
+
+      <div>
+        <h2 className="text-xl font-semibold">Lista de Produtos</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          {produtos.map((produto) => (
+            <div key={produto.id} className="p-4 border rounded shadow">
+              <h3 className="text-lg font-bold">{produto.nome}</h3>
+              <p>Quantidade: {produto.qtd}</p>
+              <p>Preço: R${produto.preco.toFixed(2)}</p>
+              {produto.foto && (
+                <img src={produto.foto} alt={produto.nome} className="mt-2 w-full h-auto" />
+              )}
+              <button
+                onClick={() => handleShowDetalhes(produto)}
+                className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+              >
+                Detalhes
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {isModalOpen && detalhesProduto && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded shadow-lg w-11/12 md:w-1/2">
+            <h2 className="text-2xl font-bold mb-4">
+              {isEditing ? 'Editar Produto' : 'Detalhes do Produto'}
+            </h2>
+            {isEditing ? (
+              <>
+                <input
+                  type="text"
+                  placeholder="Nome do Produto"
+                  value={detalhesProduto.nome}
+                  onChange={(e) =>
+                    setDetalhesProduto({ ...detalhesProduto, nome: e.target.value })
+                  }
+                  className="p-2 border rounded w-full mb-4"
+                />
+                <input
+                  type="number"
+                  placeholder="Quantidade"
+                  value={detalhesProduto.qtd}
+                  onChange={(e) =>
+                    setDetalhesProduto({ ...detalhesProduto, qtd: +e.target.value })
+                  }
+                  className="p-2 border rounded w-full mb-4"
+                />
+                <input
+                  type="number"
+                  placeholder="Preço"
+                  value={detalhesProduto.preco}
+                  onChange={(e) =>
+                    setDetalhesProduto({ ...detalhesProduto, preco: +e.target.value })
+                  }
+                  className="p-2 border rounded w-full mb-4"
+                />
+                <input
+                  type="text"
+                  placeholder="URL da Foto"
+                  value={detalhesProduto.foto}
+                  onChange={(e) =>
+                    setDetalhesProduto({ ...detalhesProduto, foto: e.target.value })
+                  }
+                  className="p-2 border rounded w-full mb-4"
+                />
+                <button
+                  onClick={handleUpdateProduto}
+                  className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  Salvar Alterações
+                </button>
+              </>
+            ) : (
+              <>
+                <p><strong>Nome:</strong> {detalhesProduto.nome}</p>
+                <p><strong>Quantidade:</strong> {detalhesProduto.qtd}</p>
+                <p><strong>Preço:</strong> R${detalhesProduto.preco.toFixed(2)}</p>
+                {detalhesProduto.foto && (
+                  <img src={detalhesProduto.foto} alt={detalhesProduto.nome} className="mt-4 w-full h-auto" />
+                )}
+              </>
+            )}
+            <div className="flex justify-between mt-4">
+              {!isEditing && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                >
+                  Editar
+                </button>
+              )}
+              <button
+                onClick={handleDeleteProduto}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Excluir
+              </button>
+              <button
+                onClick={closeModal}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+
+export default Home;
