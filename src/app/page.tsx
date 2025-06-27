@@ -12,6 +12,8 @@ interface Produto {
 }
 
 const Home: React.FC = () => {
+
+  /**  Controles de estados */
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [novoProduto, setNovoProduto] = useState<Produto>({
     nome: '',
@@ -23,6 +25,7 @@ const Home: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
+  /** Funções Actions */
   const fetchProdutos = async () => {
     const { data, error } = await supabase.from('produto').select('*');
     if (error) {
@@ -31,7 +34,6 @@ const Home: React.FC = () => {
       setProdutos(data || []);
     }
   };
-
   const handleAddProduto = async () => {
     const { data, error } = await supabase.from('produto').insert([novoProduto]);
     if (error) {
