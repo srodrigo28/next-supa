@@ -2,6 +2,7 @@
 'use client'
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import Image from 'next/image';
 
 interface Produto {
   id?: number;
@@ -149,7 +150,7 @@ const Home: React.FC = () => {
               <p>Quantidade: {produto.qtd}</p>
               <p>Preço: R${produto.preco.toFixed(2)}</p>
               {produto.foto && (
-                <img src={produto.foto} alt={produto.nome} className="mt-2 w-full h-auto" />
+                <Image src={produto.foto} alt={produto.nome} className="mt-2 w-full h-auto" width={128} height={128} />
               )}
               <button
                 onClick={() => handleShowDetalhes(produto)}
@@ -219,7 +220,7 @@ const Home: React.FC = () => {
                 <p><strong>Quantidade:</strong> {detalhesProduto.qtd}</p>
                 <p><strong>Preço:</strong> R${detalhesProduto.preco.toFixed(2)}</p>
                 {detalhesProduto.foto && (
-                  <img src={detalhesProduto.foto} alt={detalhesProduto.nome} className="mt-4 w-full h-auto" />
+                  <Image src={detalhesProduto.foto} alt={detalhesProduto.nome} className="mt-4 w-full h-auto" width={128} height={128} />
                 )}
               </>
             )}

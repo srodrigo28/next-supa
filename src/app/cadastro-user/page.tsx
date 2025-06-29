@@ -51,7 +51,7 @@ const Register: React.FC = () => {
       });
 
       if (profileError) {
-        setError("Erro ao criar o perfil do usuário.");
+        setError("Erro ao criar o perfil do usuário. " + profileError);
         setLoading(false);
         return;
       }
@@ -59,7 +59,7 @@ const Register: React.FC = () => {
       // Redireciona após sucesso
       router.push("/dashboard");
     } catch (err) {
-      setError("Algo deu errado. Tente novamente.");
+      setError("Algo deu errado. Tente novamente. " + err);
     } finally {
       setLoading(false);
     }

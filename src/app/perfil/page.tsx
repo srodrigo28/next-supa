@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent, useCallback } from "react";
 import InputMask from "react-input-mask";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface ProfileData {
   name: string;
@@ -26,7 +27,7 @@ const Profile: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const router = useRouter();
 
-  const fetchProfile = async (): Promise<void> => {
+  const fetchProfile = useCallback(async (): Promise<void> => {
     try {
       setLoading(true);
       const {
@@ -50,12 +51,14 @@ const Profile: React.FC = () => {
 
       setProfile(data);
       setPreview(data.avatar_url ? data.avatar_url : "/placeholder-avatar.png");
-    } catch (err) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Erro desconhecido.";
+      console.error("Erro ao buscar informações do perfil:", errorMessage);
       setError("Erro ao buscar informações do perfil.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
   const uploadAvatar = async (): Promise<string | null> => {
     if (!file) return null;
@@ -73,7 +76,9 @@ const Profile: React.FC = () => {
         .getPublicUrl(`perfil/${fileName}`);
 
       return data.publicUrl;
-    } catch (err) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Erro desconhecido.";
+      console.error("Erro ao fazer upload da imagem:", errorMessage);
       setError("Erro ao fazer upload da imagem.");
       return null;
     }
@@ -117,7 +122,9 @@ const Profile: React.FC = () => {
 
       setProfile((prev) => ({ ...prev, avatar_url: avatarUrl }));
       setSuccess("Perfil atualizado com sucesso!");
-    } catch (err) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Erro desconhecido.";
+      console.error("Erro ao atualizar o perfil:", errorMessage);
       setError("Erro ao atualizar o perfil.");
     } finally {
       setLoading(false);
@@ -134,7 +141,7 @@ const Profile: React.FC = () => {
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [fetchProfile]);
 
   if (loading) {
     return <div className="flex justify-center items-center h-screen">Carregando...</div>;
@@ -151,7 +158,7 @@ const Profile: React.FC = () => {
         <div className="mb-4 flex flex-col items-center">
           <label className="block text-sm text-black font-medium mb-2">Avatar</label>
           <div className="w-32 h-32 rounded-full overflow-hidden mb-4">
-            <img src={preview || "/placeholder-avatar.png"} alt="Avatar" className="w-full h-full object-cover" />
+            <Image src={preview || "/placeholder-avatar.png"} alt="Avatar" className="w-full h-full object-cover" width={128} height={128} />
           </div>
           <input type="file" accept="image/*" onChange={handleFileChange} className="text-sm" />
         </div>
