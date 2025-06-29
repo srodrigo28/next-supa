@@ -64,7 +64,7 @@ const Header: React.FC = () => {
   }
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 bg-gray-100 shadow-md">
+    <header className="flex items-center justify-between px-6 py-4 bg-slate-900 shadow-md">
       <div className="flex items-center">
         <div className="w-10 h-10 rounded-full overflow-hidden mr-4">
           <Image
@@ -77,7 +77,7 @@ const Header: React.FC = () => {
         </div>
         <div>
           <p className="text-sm font-bold">{user.name}</p>
-          <p className="text-sm text-gray-600">{user.email}</p>
+          <p className="text-sm text-gray-400">{user.email}</p>
         </div>
       </div>
       <button

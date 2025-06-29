@@ -142,7 +142,7 @@ const UserCardsWithLastAccess: React.FC = () => {
         {users.map((user) => (
           <div
             key={user.id}
-            className={`bg-white shadow-md rounded-lg p-4 flex flex-col items-center cursor-pointer hover:bg-gray-100 transition ${
+            className={`bg-slate-600 shadow-md rounded-lg p-4 flex flex-col items-center cursor-pointer hover:bg-gray-300 transition ${
               selectedUser?.id === user.id ? "border-2 border-blue-500" : ""
             }`}
             onClick={() => handleCardClick(user)}
@@ -156,8 +156,8 @@ const UserCardsWithLastAccess: React.FC = () => {
                 height={128}
               />
             </div>
-            <p className="text-lg font-semibold text-gray-800">{user.name}</p>
-            <p className="text-sm text-gray-500 capitalize">{user.papel || "default"}</p>
+            <p className="text-lg font-semibold text-gray-800 mb-2">{user.name}</p>
+            <p className="text-sm text-gray-300 capitalize"> <span className="font-bold text-gray-800">Papel:</span> <span className="bg-slate-800 px-3 py-2 rounded-md">{user.papel || "default"}</span> </p>
           </div>
         ))}
       </div>
@@ -212,12 +212,12 @@ const UserCardsWithLastAccess: React.FC = () => {
       {/* Últimos acessos */}
       <div className="mt-10">
         <h2 className="text-lg font-bold text-gray-200 mb-3">Últimos acessos</h2>
-        <ul className="bg-white rounded-md p-4 space-y-3 w-full ">
+        <ul className="bg-slate-600 rounded-md p-4 space-y-3 w-full ">
           {lastAccessUsers.length === 0 && <p className="text-gray-500">Nenhum acesso registrado.</p>}
           {lastAccessUsers.map((access) => (
-            <li key={access.id} className="flex justify-between border-b border-gray-200 pb-2">
-              <span className="font-semibold text-gray-700">{access.name}</span>
-              <span className="text-xs text-gray-500">
+            <li key={access.id} className="flex justify-between border-b border-gray-200 p-2 hover:bg-gray-900 cursor-pointer">
+              <span className="font-semibold text-gray-300">{access.name}</span>
+              <span className="text-xs text-gray-300">
                 {access.last_access_at
                   ? new Date(access.last_access_at).toLocaleString()
                   : "Não registrado"}
