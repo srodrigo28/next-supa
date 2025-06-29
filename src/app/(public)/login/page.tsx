@@ -14,15 +14,40 @@ const Home: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  async function updateLastAccess(userId: string) {
+    try {
+      const { error } = await supabase
+        .from("perfil")
+        .update({ last_access_at: new Date() })
+        .eq("user_id", userId);
+
+      if (error) {
+        console.error("Erro ao atualizar último acesso:", error);
+      }
+    } catch (err) {
+      console.error("Erro inesperado ao atualizar último acesso:", err);
+    }
+  }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null); // Limpa o erro antes de tentar autenticar
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      setError("Credenciais inválidas. Tente novamente.");
-    } else {
-      router.push("/dashboard"); // Redireciona após login bem-sucedido
+    try {
+      const { data: session, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        setError("Credenciais inválidas. Tente novamente.");
+        return;
+      }
+
+      if (session?.user?.id) {
+        await updateLastAccess(session.user.id); // Atualiza o último acesso
+        router.push("/dashboard"); // Redireciona após login bem-sucedido
+      }
+    } catch (err) {
+      console.error("Erro inesperado durante o login:", err);
+      setError("Ocorreu um erro ao fazer login. Tente novamente.");
     }
   };
 
