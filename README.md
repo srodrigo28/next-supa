@@ -8,6 +8,11 @@ npx create-next-app@14 nomeProjeto
 npm install @supabase/supabase-js
 ```
 
+```
+npm install react-input-mask
+npm install --save-dev  @types/react-input-mask
+```
+
 #### > 3. variaveis de ambiente
 ```
 NEXT_PUBLIC_SUPABASE_URL=""
@@ -25,4 +30,3 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 ```
 
 #### > 5. Página inicial  pages/auth.tsx
-
